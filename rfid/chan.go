@@ -1,11 +1,13 @@
 package rfid
 
+import "time"
+
 type ReaderChan struct {
 	reader RfidReader
 	ch     chan string
 }
 
-func NewReaderChan(reader RfidReader) (*ReaderChan, error) {
+func NewReaderChan(reader RfidReader, sleepDuration time.Duration) (*ReaderChan, error) {
 	reducReader, err := NewReducer(reader)
 	if err != nil {
 		return nil, err
@@ -14,12 +16,13 @@ func NewReaderChan(reader RfidReader) (*ReaderChan, error) {
 		reader: reducReader,
 		ch:     make(chan string, 1),
 	}
-	go c.loop()
+	go c.loop(sleepDuration)
 	return c, nil
 }
 
-func (c *ReaderChan) loop() {
+func (c *ReaderChan) loop(sleepDuration time.Duration) {
 	for {
+		time.Sleep(sleepDuration)
 		id, err := c.reader.ReadId()
 		if err != nil {
 			continue
